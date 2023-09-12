@@ -1,0 +1,76 @@
+@prefix : <https://w3id.org/conn#> .
+@prefix js: <https://w3id.org/conn/js#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rml: <https://w3id.org/conn/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+
+
+<yarrmls/file> a :FileReaderChannel;
+  :fileReadFirstContent "true";
+  :fileOnReplace "true";
+  :filePath <./mappings.yml>.
+
+<rml/writer> a :JsWriterChannel.
+<rml/reader> a :JsReaderChannel.
+[] a js:JsChannel; 
+:reader <rml/reader>; 
+:writer <rml/writer>.
+
+<> owl:imports <./node_modules/sds-processors/configs/yarrrml.ttl>.
+[] a js:Y2R;
+   js:input <yarrmls/file>;
+   js:output <rml/writer>.
+
+<http/reader> a :HttpReaderChannel;
+  :httpPort 8888.
+
+<ttl-raw/writer> a :JsWriterChannel.
+<ttl-raw/reader> a :JsReaderChannel.
+[] a js:JsChannel; :reader <ttl-raw/reader>; :writer <ttl-raw/writer>.
+
+<> owl:imports <./node_modules/rml-mapper-processor-ts/rmlMapper.ttl>.
+[] a js:RmlMapperReader;
+  js:rml_data_input <http/reader>;
+  js:rml_mapping_reader <rml/reader>;
+  js:rml_data_output <ttl-raw/writer>;
+  rml:referenceFormulation ql:JSONPath;
+  rml:iterator "$";
+  rml:jarFile <./rml-mapper-6.x.x.jar>.
+
+<ldes-raw/writer> a :JsWriterChannel.
+<ldes-raw/reader> a :JsReaderChannel.
+[] a js:JsChannel; :reader <ldes-raw/reader>; :writer <ldes-raw/writer>.
+
+<> owl:imports <./node_modules/sds-processors/configs/ldesify.ttl>.
+[] a js:Ldesify;
+  js:input <ttl-raw/reader>;
+  js:output <ldes-raw/writer>;
+  js:path <./state.json>.
+
+<sds-raw/writer> a :JsWriterChannel.
+<sds-raw/reader> a :JsReaderChannel.
+[] a js:JsChannel; :reader <sds-raw/reader>; :writer <sds-raw/writer>.
+
+<> owl:imports <./node_modules/sds-processors/configs/sdsify.ttl>.
+[] a js:Sdsify;
+  js:input <ldes-raw/reader>;
+  js:output <sds-raw/writer>;
+  js:stream <https://w3id.org/sds#Stream>.
+
+<sds-raw/writer> a :JsWriterChannel.
+<sds-raw/reader> a :JsReaderChannel.
+
+<metadata/in> a :FileReaderChannel;
+  :fileReadFirstContent "true";
+  :fileOnReplace "true";
+  :filePath <./metadataIn.ttl>.
+
+<> owl:imports <./node_modules/@treecg/sds-storage-writer-mongo/step.ttl>.
+[] a js:Ingest;
+  js:dataInput <sds-raw/reader>;
+  js:metadataInput <metadata/in>;
+  js:metadataCollection "META";
+  js:dataCollection "DATA";
+  js:indexCollection "INDEX";
+  js:databaseUrl "mongodb://127.0.0.1:27017/myldes".
+
