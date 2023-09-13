@@ -4,6 +4,8 @@
 @prefix rml: <https://w3id.org/conn/rml#> .
 @prefix ql: <http://semweb.mmlab.be/ns/ql#> .
 
+[] a :FileChannel;
+  :reader <yarrmls/file>.
 
 <yarrmls/file> a :FileReaderChannel;
   :fileReadFirstContent "true";
@@ -21,6 +23,9 @@
    js:input <yarrmls/file>;
    js:output <rml/writer>.
 
+
+[] a :HttpChannel;
+  :reader <http/reader>.
 <http/reader> a :HttpReaderChannel;
   :httpPort 8888.
 
@@ -60,6 +65,8 @@
 <sds-raw/writer> a :JsWriterChannel.
 <sds-raw/reader> a :JsReaderChannel.
 
+[] a :FileChannel;
+  :reader <metadata/in>.
 <metadata/in> a :FileReaderChannel;
   :fileReadFirstContent "true";
   :fileOnReplace "true";
